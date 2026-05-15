@@ -5,6 +5,7 @@ import 'edit_profile_screen.dart';
 import 'help_support_screen.dart';
 import 'login_screen.dart';
 import 'change_password_screen.dart';
+import 'transaction_history_screen.dart';
 import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -31,8 +32,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _logout() async {
-    // Có thể thay bằng QuickAlertConfirm của ông cho đồng bộ, 
-    // ở đây tui làm cái Dialog phẳng cho hợp tone giao diện.
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -71,11 +70,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Màu nền xám nhạt để làm nổi bật các khối màu trắng
       backgroundColor: const Color(0xFFF4F6F8), 
       appBar: AppBar(
         title: const Text('Tài khoản', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w800, fontSize: 20)),
-        backgroundColor: const Color(0xFFFFCC33), // Vàng solid chuẩn
+        backgroundColor: const Color(0xFFFFCC33),
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -110,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFFCC33), width: 3), // Viền vàng solid
+                  border: Border.all(color: const Color(0xFFFFCC33), width: 3),
                 ),
                 child: const Icon(Icons.person, size: 60, color: Colors.grey),
               ),
@@ -120,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black87, // Nút camera màu đen solid
+                    color: Colors.black87,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 3),
                   ),
@@ -160,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03), // Đổ bóng cực mỏng, không loe loét
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 20,
               offset: const Offset(0, 4),
             ),
@@ -174,6 +172,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildDivider(),
             _buildMenuItem(Icons.lock_outline, 'Đổi mật khẩu', onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePasswordScreen()));
+            }),
+            _buildDivider(),
+            _buildMenuItem(Icons.history_rounded, 'Lịch sử giao dịch', onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const TransactionHistoryScreen()));
             }),
             _buildDivider(),
             _buildMenuItem(Icons.settings_outlined, 'Cài đặt hệ thống', onTap: () {
@@ -210,7 +212,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  // Dùng khối màu nền nhạt tĩnh thay vì gradient
                   color: color == Colors.red ? Colors.red.shade50 : Colors.grey.shade100, 
                   borderRadius: BorderRadius.circular(12),
                 ),

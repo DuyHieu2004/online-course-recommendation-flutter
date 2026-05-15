@@ -46,18 +46,11 @@ class CourseService {
           courseData = rawData;
         }
 
-        bool isCompleted = false;
-        bool isEnrolled = false;
-        dynamic userReview;
-
-        if (rawData is Map<String, dynamic>) {
-          if (rawData['isCompleted'] != null) isCompleted = rawData['isCompleted'];
-          if (rawData['IsCompleted'] != null) isCompleted = rawData['IsCompleted'];
-          if (rawData['userReview'] != null) userReview = rawData['userReview'];
-          if (rawData['UserReview'] != null) userReview = rawData['UserReview'];
-        }
-
+        bool isCompleted = rawData['isCompleted'] ?? false;
+        bool isEnrolled = rawData['isEnrolled'] ?? false;
+        dynamic userReview = rawData['userReview'];
         if (user != null) {
+          // If already enrolled according to main API, or if we want extra progress info
           try {
             final contentResponse = await http.get(
               Uri.parse('${ApiConstants.baseUrl}/Learning/course/$courseId'),
@@ -66,10 +59,10 @@ class CourseService {
             if (contentResponse.statusCode == 200) {
               final contentData = jsonDecode(contentResponse.body);
               isCompleted = (contentData['phanTramTienDo'] ?? 0) >= 100;
-              isEnrolled = true;
+              isEnrolled = true; // Confirmed
             }
           } catch (e) {
-            // Ignore
+            // Fallback to what we got from main API
           }
 
           if (userReview == null && courseData != null && courseData['danhGia'] != null) {
@@ -118,7 +111,7 @@ class CourseService {
     if (user == null) return [];
 
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/Recommendation/user-based/${user.userId}'));
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/Recommendation/collaborative/${user.userId}'));
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((json) => RecommendedCourse.fromJson(json)).toList();
@@ -131,20 +124,10 @@ class CourseService {
 
   static Future<List<RecommendedCourse>> getPopularCourses() async {
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/Courses?sortBy=rating&pageSize=10'));
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/Recommendation/popular'));
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List coursesJson = data['data'];
-        return coursesJson.map((json) {
-          return RecommendedCourse(
-            id: json['maKhoaHoc'] ?? 0,
-            title: json['tieuDe'] ?? '',
-            rating: (json['tbdanhGia'] ?? 0).toDouble(),
-            price: (json['giaGoc'] ?? 0).toDouble(),
-            imageUrl: json['anhUrl'],
-            instructorName: json['giangVien'] is List && (json['giangVien'] as List).isNotEmpty ? json['giangVien'][0]['ten'] : null,
-          );
-        }).toList();
+        final List data = jsonDecode(response.body);
+        return data.map((json) => RecommendedCourse.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
@@ -212,6 +195,24 @@ class CourseService {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  static Future<bool> saveLessonTime(int lessonId, int watchTime) async {
+    final user = await AuthService.getCurrentUser();
+    if (user == null) return false;
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/Learning/lesson/$lessonId/time'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${user.token}'
+        },
+        body: jsonEncode(watchTime),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -308,6 +309,53 @@ class CourseService {
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((json) => ApiCourse.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<List<dynamic>> getUserInterests() async {
+    final user = await AuthService.getCurrentUser();
+    if (user == null) return [];
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/Users/interests'),
+        headers: {'Authorization': 'Bearer ${user.token}'},
+      );
+      if (response.statusCode == 200) return jsonDecode(response.body) as List;
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<bool> updateUserInterests(List<int> categoryIds) async {
+    final user = await AuthService.getCurrentUser();
+    if (user == null) return false;
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/Users/interests'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${user.token}'
+        },
+        body: jsonEncode(categoryIds),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<List<Category>> getAllCategories() async {
+    try {
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/Categories?pageSize=100'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List catsJson = data['data'];
+        return catsJson.map((json) => Category.fromJson(json)).toList();
       }
       return [];
     } catch (e) {

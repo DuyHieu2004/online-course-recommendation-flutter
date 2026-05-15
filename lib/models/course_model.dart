@@ -42,6 +42,7 @@ class RecommendedCourse {
   final String title;
   final double rating;
   final double price;
+  final double score; // Add score
   final String? imageUrl;
   final String? instructorName;
 
@@ -50,18 +51,36 @@ class RecommendedCourse {
     required this.title,
     required this.rating,
     required this.price,
+    this.score = 0.0,
     this.imageUrl,
     this.instructorName,
   });
 
   factory RecommendedCourse.fromJson(Map<String, dynamic> json) {
     return RecommendedCourse(
-      id: json['courseId'] ?? 0,
-      title: json['title'] ?? '',
-      rating: (json['averageRating'] ?? 0).toDouble(),
-      price: (json['originalPrice'] ?? 0).toDouble(),
-      imageUrl: json['image'],
-      instructorName: json['instructor'],
+      id: json['courseId'] ?? json['CourseId'] ?? 0,
+      title: json['title'] ?? json['Title'] ?? '',
+      rating: (json['averageRating'] ?? json['AverageRating'] ?? 0).toDouble(),
+      price: (json['originalPrice'] ?? json['OriginalPrice'] ?? 0).toDouble(),
+      score: (json['score'] ?? json['Score'] ?? 0.0).toDouble(),
+      imageUrl: json['image'] ?? json['Image'],
+      instructorName: json['instructor'] ?? json['Instructor'],
+    );
+  }
+}
+
+class Category {
+  final int id;
+  final String name;
+  final String? description;
+
+  Category({required this.id, required this.name, this.description});
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      id: json['maTheLoai'] ?? json['MaTheLoai'] ?? 0,
+      name: json['ten'] ?? json['Ten'] ?? json['tenTheLoai'] ?? 'Chưa có tên',
+      description: json['moTa'] ?? json['MoTa'],
     );
   }
 }
@@ -89,6 +108,13 @@ class EnrolledCourse {
     this.expiryDate,
     required this.rawJson,
   });
+
+  bool get isExpired {
+    if (expiryDate == null) return false;
+    return expiryDate!.isBefore(DateTime.now());
+  }
+
+  bool get isCompleted => progress >= 1.0;
 
   factory EnrolledCourse.fromJson(Map<String, dynamic> json) {
     final courseJson = json['khoaHoc'] ?? {};

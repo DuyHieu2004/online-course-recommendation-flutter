@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/course_service.dart';
 import '../models/course_model.dart';
-import '../utils/Toast.dart';
+import '../utils/toast_utils.dart';
 import 'package:intl/intl.dart';
 import 'learning_screen.dart';
 
@@ -43,6 +43,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> with SingleTi
     final course = _courseData!['course'];
     final isCompleted = _courseData!['isCompleted'] ?? false;
     final isEnrolled = _courseData!['isEnrolled'] ?? false;
+    final isExpired = _courseData!['isExpired'] ?? false;
     final userReview = _courseData!['userReview'];
 
     return Scaffold(
@@ -77,7 +78,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> with SingleTi
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomAction(isEnrolled, course['giaGoc']),
+      bottomNavigationBar: _buildBottomAction(isEnrolled, isExpired, isCompleted, course['giaGoc']),
     );
   }
 
@@ -288,8 +289,8 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> with SingleTi
     );
   }
 
-  Widget _buildBottomAction(bool isEnrolled, dynamic price) {
-    if (isEnrolled) {
+  Widget _buildBottomAction(bool isEnrolled, bool isExpired, bool completed, dynamic price) {
+    if (isExpired) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
@@ -297,16 +298,71 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> with SingleTi
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => LearningScreen(courseId: widget.courseId))).then((_) => _loadDetails());
-                },
+                onPressed: _buyCourse,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.red,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Vào học ngay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.rotate_left, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text('Mua lại để tiếp tục học', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
+            ),
+          ],
+        ),
+      );
+    } else if (isEnrolled) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (completed) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green.shade100),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.emoji_events, color: Colors.green),
+                    SizedBox(width: 12),
+                    Text(
+                      'Đã hoàn thành 100%',
+                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => LearningScreen(courseId: widget.courseId))).then((_) => _loadDetails());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Vào học ngay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

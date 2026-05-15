@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../utils/Toast.dart';
+import '../utils/toast_utils.dart';
 import 'home_screen.dart';
 import 'course_list_screen.dart';
 import 'bookmarks_screen.dart';
 import 'profile_screen.dart';
+import 'ai_recommendation_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -61,7 +62,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () {
-              ToastUtils.showInfo('Scanner Opening...');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AiRecommendationScreen()),
+              );
             },
             child: Container(
               margin: const EdgeInsets.all(4),
@@ -73,7 +77,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const Icon(Icons.qr_code_scanner, color: Colors.black87, size: 28),
+              child: const Icon(Icons.auto_awesome, color: Colors.black87, size: 28),
             ),
           ),
         ),
