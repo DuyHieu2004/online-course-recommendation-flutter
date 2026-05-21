@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // GỌI API 1: USER-BASED
   Future<List<dynamic>> fetchRecommendations() async {
     try {
-      const String baseUrl = 'http://192.168.1.22:5128';
+      const String baseUrl = 'http://127.0.0.1:5128';
       final url = Uri.parse('$baseUrl/api/Recommendation/user-based/542');
       final response = await http.get(url).timeout(const Duration(seconds: 30));
 
@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // GỌI API 2: CONTENT-BASED (User Profile)
   Future<List<dynamic>> fetchProfileBasedRecommendations() async {
     try {
-      const String baseUrl = 'http://192.168.1.22:5128';
+      const String baseUrl = 'http://127.0.0.1:5128';
       // Gọi API mới theo hồ sơ user
       final url = Uri.parse(
         '$baseUrl/api/Recommendation/content-based/user-profile/542',
