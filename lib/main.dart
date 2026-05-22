@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-import 'main_navigation_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/main_navigation_screen.dart';
+import 'screens/login_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+
+  runApp(MyApp(isLoggedIn: token != null));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +26,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const MainNavigationScreen(),
+      home: isLoggedIn ? const MainNavigationScreen() : const LoginScreen(),
     );
   }
 }
