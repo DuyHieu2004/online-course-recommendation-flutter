@@ -110,14 +110,8 @@ class _CourseListScreenState extends State<CourseListScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          course.isCompleted ? 'Đã hoàn thành' : '${(course.progress * 100).toInt()}% Completed', 
-                                          style: TextStyle(color: course.isCompleted ? const Color(0xFF10B981) : Colors.black54, fontSize: 12, fontWeight: course.isCompleted ? FontWeight.bold : FontWeight.normal)
-                                        ),
-                                        Text(
-                                          course.isExpired ? 'Hết hạn' : (course.isCompleted ? 'Đã xong' : 'Đang học'), 
-                                          style: TextStyle(color: course.isExpired ? Colors.red : (course.isCompleted ? const Color(0xFF10B981) : const Color(0xFF1E88E5)), fontSize: 12, fontWeight: FontWeight.bold)
-                                        ),
+                                        Text('${(course.progress * 100).toInt()}% Completed', style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                                        Text(course.progress >= 1.0 ? 'Hoàn thành' : course.status, style: const TextStyle(color: Color(0xFF1E88E5), fontSize: 12, fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                     const SizedBox(height: 10),
