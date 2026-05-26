@@ -1,9 +1,11 @@
 class UserProfile {
   final int userId;
-  final String name;
+  String name;
   final String email;
   final String role;
   final String token;
+  String? linkAnhDaiDien;
+  String? tieuSu;
 
   UserProfile({
     required this.userId,
@@ -11,5 +13,7 @@ class UserProfile {
     required this.email,
     required this.role,
     required this.token,
+    this.linkAnhDaiDien,
+    this.tieuSu,
   });
 }

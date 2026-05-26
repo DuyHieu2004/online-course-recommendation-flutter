@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 import '../services/course_service.dart';
 import 'learn_screen.dart';
 
@@ -11,7 +10,7 @@ class CourseDetailsScreen extends StatefulWidget {
   State<CourseDetailsScreen> createState() => _CourseDetailsScreenState();
 }
 
-class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
+class _CourseDetailsScreenState extends State<CourseDetailsScreen> with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _courseData;
   List<dynamic> _reviews = [];
   List<dynamic> _similarCourses = [];
@@ -334,6 +333,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           ],
         ],
       ),
+      bottomNavigationBar: _buildBottomAction(isEnrolled, isExpired, isCompleted, course['giaGoc']),
     );
   }
 
@@ -1263,7 +1263,53 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
             color: isActive ? const Color(0xFF1E88E5) : Colors.grey.shade600,
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Giá khóa học', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  price != null && price > 0 ? NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(price) : 'Miễn phí',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
+                ),
+              ],
+            ),
+            ElevatedButton(
+              onPressed: _buyCourse,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Mua khóa học', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _buyCourse() async {
+    setState(() => _isLoading = true);
+    final success = await CourseService.buyCourse(widget.courseId);
+    if (success) {
+      if (mounted) {
+        ToastUtils.showSuccess('Mua khóa học thành công!');
+        _loadDetails();
+      }
+    } else {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ToastUtils.showError('Mua khóa học thất bại. Vui lòng đăng nhập hoặc thử lại.');
+      }
+    }
   }
 }

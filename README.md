@@ -2,7 +2,7 @@
 
 1. Connect your physical device to your computer via USB.  
 2. Open a terminal and run the following command to set up ADB reverse:
-3. Make sure your .NET backend is running (listening on http://localhost:5025).
+3. Make sure your .NET backend is running (listening on http://localhost:5128).
 4. Open the Terminal in Android Studio (at the bottom).
 5. Type this command and press Enter:
 

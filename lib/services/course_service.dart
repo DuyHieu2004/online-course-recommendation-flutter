@@ -27,7 +27,59 @@ class CourseService {
         Uri.parse('${ApiConstants.baseUrl}/Courses/$courseId'),
       );
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final rawData = jsonDecode(response.body);
+        
+        // Extract course
+        dynamic courseData;
+        if (rawData is Map<String, dynamic>) {
+          if (rawData.containsKey('course') && rawData['course'] is Map) {
+            courseData = rawData['course'];
+          } else if (rawData.containsKey('Course') && rawData['Course'] is Map) {
+            courseData = rawData['Course'];
+          } else {
+            courseData = rawData;
+          }
+        } else {
+          courseData = rawData;
+        }
+
+        bool isCompleted = rawData['isCompleted'] ?? false;
+        bool isEnrolled = rawData['isEnrolled'] ?? false;
+        dynamic userReview = rawData['userReview'];
+        if (user != null) {
+          // If already enrolled according to main API, or if we want extra progress info
+          try {
+            final contentResponse = await http.get(
+              Uri.parse('${ApiConstants.baseUrl}/Learning/course/$courseId'),
+              headers: {'Authorization': 'Bearer ${user.token}'},
+            );
+            if (contentResponse.statusCode == 200) {
+              final contentData = jsonDecode(contentResponse.body);
+              isCompleted = (contentData['phanTramTienDo'] ?? 0) >= 100;
+              isEnrolled = true; // Confirmed
+            }
+          } catch (e) {
+            // Fallback to what we got from main API
+          }
+
+          if (userReview == null && courseData != null && courseData['danhGia'] != null) {
+            final reviews = courseData['danhGia'] as List;
+            try {
+              userReview = reviews.firstWhere(
+                (r) => r['nguoiDanhGia'] != null && r['nguoiDanhGia']['maNguoiDung'] == user.userId,
+              );
+            } catch (e) {
+              // Not found
+            }
+          }
+        }
+
+        return {
+          'course': courseData,
+          'isCompleted': isCompleted,
+          'isEnrolled': isEnrolled,
+          'userReview': userReview,
+        };
       }
       return null;
     } catch (e) {
@@ -82,16 +134,25 @@ class CourseService {
         Uri.parse('${ApiConstants.baseUrl}/Learning/course/$courseId'),
         headers: {'Authorization': 'Bearer ${user.token}'},
       );
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      }
+      if (response.statusCode == 200) return jsonDecode(response.body);
       return null;
     } catch (e) {
       return null;
     }
   }
 
-  // 3. THÊM HÀM NÀY: Đánh dấu hoàn thành bài học
+  static Future<List<dynamic>> getCourseAnnouncements(int courseId) async {
+    try {
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/Courses/$courseId/announcements'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List;
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   static Future<Map<String, dynamic>?> completeLesson(int lessonId) async {
     final user = await AuthService.getCurrentUser();
     if (user == null) return null;

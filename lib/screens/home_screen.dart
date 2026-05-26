@@ -6,6 +6,9 @@ import '../services/auth_service.dart';
 import '../services/course_service.dart';
 import 'search_course_screen.dart';
 import 'course_details_screen.dart';
+// Nhớ import 2 file service của bạn vào nhé
+import '../utils/Toast.dart';
+import '../utils/QuickAlertService.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,8 +19,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   UserProfile? _user;
-  List<RecommendedCourse> _recommendedCourses = [];
+  List<RecommendedCourse> _personalizedCourses = [];
+  List<RecommendedCourse> _trendingCourses = [];
   bool _isLoading = true;
+  String _trendingTitle = 'Trending Courses';
 
   @override
   void initState() {
@@ -26,19 +31,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final user = await AuthService.getCurrentUser();
-    if (user != null) {
-      final recommendations = await CourseService.getRecommendedCourses();
+    try {
+      final user = await AuthService.getCurrentUser();
+      List<RecommendedCourse> personalized = [];
+      List<RecommendedCourse> trending = [];
+      
+      if (user != null) {
+        personalized = await CourseService.getRecommendedCourses();
+        trending = await CourseService.getCollaborativeCourses();
+      }
+      
+      String title = 'Trending Courses';
+      if (trending.isEmpty) {
+        trending = await CourseService.getPopularCourses();
+        title = 'Trending Courses';
+      }
+      
       if (mounted) {
         setState(() {
           _user = user;
-          _recommendedCourses = recommendations;
+          _personalizedCourses = personalized;
+          _trendingCourses = trending;
+          _trendingTitle = title;
           _isLoading = false;
         });
       }
-    } else {
+    } catch (e) {
+      // Ứng dụng Toast hoặc QuickAlert ngay đây khi có lỗi tải data
       if (mounted) {
         setState(() => _isLoading = false);
+        // Có thể dùng ToastUtils.showError('Lỗi kết nối mạng!'); 
+        // Hoặc QuickAlert như bên dưới:
+        QuickAlertService.showAlertFailure(context, 'Không thể tải dữ liệu. Vui lòng thử lại sau!');
       }
     }
   }
@@ -46,7 +70,28 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      // Đã sửa lại cái loading cho đẹp và tone-sur-tone với app
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFCC33)), // Màu vàng chuẩn
+                strokeWidth: 4,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Đang tải dữ liệu...',
+                style: TextStyle(color: Colors.black54, fontSize: 14, fontWeight: FontWeight.w500),
+              )
+            ],
+          ),
+        ),
+      );
+    
+     
     }
 
     return Scaffold(
@@ -58,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _buildWelcomeSection(),
             const SizedBox(height: 24),
-            _buildSuggestedCoursesSection(),
+            _buildPersonalizedCoursesSection(),
+            if (_personalizedCourses.isNotEmpty) const SizedBox(height: 24),
+            _buildTrendingCoursesSection(),
             const SizedBox(height: 24),
             _buildGridSection(),
             const SizedBox(height: 80),
@@ -150,22 +197,55 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSuggestedCoursesSection() {
+  Widget _buildPersonalizedCoursesSection() {
+    if (_personalizedCourses.isEmpty) return const SizedBox.shrink();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'Suggested Courses',
+            'Recommended for You',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
         ),
         const SizedBox(height: 16),
-        if (_recommendedCourses.isEmpty)
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: _personalizedCourses.length,
+            itemBuilder: (context, index) {
+              final course = _personalizedCourses[index];
+              return Padding(
+                padding: EdgeInsets.only(right: index == _personalizedCourses.length - 1 ? 0 : 12.0),
+                child: _buildCourseCard(course),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrendingCoursesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            _trendingTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_trendingCourses.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text('No suggested courses available right now.', style: TextStyle(color: Colors.black54)),
+            child: Text('No trending courses available right now.', style: TextStyle(color: Colors.black54)),
           )
         else
           SizedBox(
@@ -173,11 +253,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              itemCount: _recommendedCourses.length,
+              itemCount: _trendingCourses.length,
               itemBuilder: (context, index) {
-                final course = _recommendedCourses[index];
+                final course = _trendingCourses[index];
                 return Padding(
-                  padding: EdgeInsets.only(right: index == _recommendedCourses.length - 1 ? 0 : 12.0),
+                  padding: EdgeInsets.only(right: index == _trendingCourses.length - 1 ? 0 : 12.0),
                   child: _buildCourseCard(course),
                 );
               },
@@ -190,6 +270,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCourseCard(RecommendedCourse course) {
     return InkWell(
       onTap: () {
+        // Ví dụ dùng Alert Loading khi click vào xem chi tiết nếu data nặng
+        // QuickAlertService.showAlertLoading(context, 'Đang mở khóa học...');
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CourseDetailsScreen(courseId: course.id)),

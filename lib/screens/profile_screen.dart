@@ -1,9 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/auth_service.dart';
-import '../services/course_service.dart';
-import '../models/course_model.dart';
 import '../models/user_profile_model.dart';
 import 'order_history_screen.dart';
 import '../api_constants.dart';
@@ -56,7 +55,20 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  Widget build(BuildContext context) {
+    // Cung cấp Bloc cho toàn màn hình
+    return BlocProvider(
+      create: (context) => ProfileBloc()..add(LoadProfileEvent()),
+      child: const ProfileScreenView(),
+    );
+  }
+}
+
+class ProfileScreenView extends StatefulWidget {
+  const ProfileScreenView({super.key});
+
+  @override
+  State<ProfileScreenView> createState() => _ProfileScreenViewState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen>
