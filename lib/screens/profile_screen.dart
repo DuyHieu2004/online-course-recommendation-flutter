@@ -1,14 +1,16 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/auth_service.dart';
+import '../services/course_service.dart';
+import '../models/course_model.dart';
 import '../models/user_profile_model.dart';
 import 'order_history_screen.dart';
 import '../api_constants.dart';
 import 'login_screen.dart';
 import 'change_password_screen.dart';
 import 'learn_screen.dart';
+import 'certificate_screen.dart';
 
 // ─────────────────────────────────────────────
 // Lightweight certificate model (inline)
@@ -38,7 +40,7 @@ class _Certificate {
           json['tenKhoaHoc'] ??
           json['courseName'] ??
           'Chứng chỉ khóa học',
-      issuedDate: json['ngayCap'] ?? json['issuedDate'] ?? '',
+      issuedDate: json['ngayPhat'] ?? json['ngayCap'] ?? json['issuedDate'] ?? '',
       thumbnailUrl:
           khoaHoc['anhUrl'] ??
           khoaHoc['image'] ??
@@ -55,20 +57,7 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Cung cấp Bloc cho toàn màn hình
-    return BlocProvider(
-      create: (context) => ProfileBloc()..add(LoadProfileEvent()),
-      child: const ProfileScreenView(),
-    );
-  }
-}
-
-class ProfileScreenView extends StatefulWidget {
-  const ProfileScreenView({super.key});
-
-  @override
-  State<ProfileScreenView> createState() => _ProfileScreenViewState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen>
@@ -619,7 +608,10 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
         itemCount: _certificates.length,
-        itemBuilder: (_, i) => _CertificateCard(cert: _certificates[i]),
+        itemBuilder: (_, i) => _CertificateCard(
+          cert: _certificates[i],
+          userName: _user?.name ?? 'Học viên',
+        ),
       ),
     );
   }
@@ -832,36 +824,6 @@ class _CourseCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 6),
-              if (isCompleted)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    color: _green,
-                    size: 18,
-                  ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _blue.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(Icons.play_arrow, color: _blue, size: 18),
-                ),
             ],
           ),
         ),
@@ -948,6 +910,35 @@ class _CertificateCard extends StatelessWidget {
                 _formatDate(cert.issuedDate),
                 style: const TextStyle(fontSize: 12, color: Colors.black45),
               ),
+              const SizedBox(width: 6),
+              if (isCompleted)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: _green,
+                    size: 18,
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _blue.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.play_arrow, color: _blue, size: 18),
+                ),
             ],
           ),
         ),
@@ -973,6 +964,120 @@ class _CertificateCard extends StatelessWidget {
               content: Text('Đang tải chứng chỉ: ${cert.courseName}...'),
               backgroundColor: const Color(0xFF8E24AA),
               behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _thumbPlaceholder() => Container(
+    color: const Color(0xFFF0F4FF),
+    child: const Icon(
+      Icons.play_lesson_outlined,
+      color: Color(0xFF1E88E5),
+      size: 30,
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────
+// Certificate Card Widget
+// ─────────────────────────────────────────────
+class _CertificateCard extends StatelessWidget {
+  final _Certificate cert;
+  final String userName;
+  const _CertificateCard({required this.cert, required this.userName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8D5FF), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 10,
+        ),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFAB47BC), Color(0xFF7B1FA2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.workspace_premium,
+            color: Colors.white,
+            size: 26,
+          ),
+        ),
+        title: Text(
+          cert.courseName,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 12,
+                color: Colors.black38,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _formatDate(cert.issuedDate),
+                style: const TextStyle(fontSize: 12, color: Colors.black45),
+              ),
+            ],
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3E5F5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Text(
+            'Xem',
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF8E24AA),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CertificateScreen(
+                userName: userName,
+                courseName: cert.courseName,
+                issuedDate: _formatDate(cert.issuedDate),
+              ),
             ),
           );
         },

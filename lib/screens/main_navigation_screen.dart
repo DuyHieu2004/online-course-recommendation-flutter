@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/toast_utils.dart';
 import 'home_screen.dart';
 import 'course_list_screen.dart';
 import 'bookmarks_screen.dart';

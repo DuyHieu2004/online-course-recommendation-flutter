@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import '../services/auth_service.dart';
 import '../services/course_service.dart';
-import 'package:intl/intl.dart';
 import '../models/course_model.dart';
 import 'course_details_screen.dart';
 import 'learn_screen.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/course_service.dart';
-import '../utils/QuickAlertService.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,7 +18,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() async {
     if (_passwordController.text != _confirmPasswordController.text) {
-      QuickAlertService.showAlertWarning(context, 'Passwords do not match');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
       return;
     }
 
@@ -33,12 +34,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (success) {
       if (mounted) {
-        QuickAlertService.showAlertSuccess(context, 'Registration successful. Please login.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful. Please login.')),
+        );
         Navigator.pop(context);
       }
     } else {
       if (mounted) {
-        QuickAlertService.showAlertFailure(context, 'Registration failed. Try again.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration failed. Try again.')),
+        );
       }
     }
   }
