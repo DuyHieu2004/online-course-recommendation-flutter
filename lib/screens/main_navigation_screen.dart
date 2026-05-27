@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../utils/toast_utils.dart';
 import 'home_screen.dart';
 import 'course_list_screen.dart';
 import 'bookmarks_screen.dart';
 import 'profile_screen.dart';
-import 'ai_recommendation_screen.dart';
+import 'ai_recommendations_screen.dart'; // <-- IMPORT FILE MỚI VÀO ĐÂY
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -16,12 +15,21 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const CourseListScreen(),
-    const BookmarksScreen(),
-    const ProfileScreen(),
-  ];
+  // THÊM HÀM KHỞI TẠO ĐỘNG NÀY
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return const CourseListScreen();
+      case 2:
+        return const BookmarksScreen(); // Tự động gọi lại initState() để tải giỏ hàng mới
+      case 3:
+        return const ProfileScreen(); // Tự động reload tiến độ học tập mới
+      default:
+        return const HomeScreen();
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -32,7 +40,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      // SỬA DÒNG NÀY: Gọi hàm _buildBody() thay vì mảng _screens[_selectedIndex]
+      body: _buildBody(),
       floatingActionButton: _buildFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNav(),
@@ -62,9 +71,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () {
+              // CHUYỂN HƯỚNG SANG TRANG GỢI Ý AI
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AiRecommendationScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AiRecommendationsScreen(),
+                ),
               );
             },
             child: Container(
@@ -72,12 +84,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFEDE7F6), Color(0xFFF3E5F5)],
+                  colors: [
+                    Color(0xFFEDE7F6),
+                    Color(0xFFF3E5F5),
+                  ], // Tone màu tím AI
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const Icon(Icons.auto_awesome, color: Colors.black87, size: 28),
+              // ĐỔI ICON THÀNH CÂY ĐŨA PHÉP (auto_fix_high là icon chuẩn nhất trong Material)
+              child: const Icon(
+                Icons.auto_fix_high,
+                color: Color(0xFF8E24AA),
+                size: 28,
+              ),
             ),
           ),
         ),
@@ -111,7 +131,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               _buildNavItem(Icons.home, 'Home', 0),
               _buildNavItem(Icons.school_outlined, 'Courses', 1),
               const SizedBox(width: 48), // Space for FAB
-              _buildNavItem(Icons.bookmark_border, 'Bookmarks', 2),
+              _buildNavItem(Icons.bookmark_border, 'Giỏ hàng', 2),
               _buildNavItem(Icons.person_outline, 'Profile', 3),
             ],
           ),
