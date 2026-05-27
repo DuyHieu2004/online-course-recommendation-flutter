@@ -824,6 +824,91 @@ class _CourseCard extends StatelessWidget {
                     ),
                   ],
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _thumbPlaceholder() => Container(
+    color: const Color(0xFFF0F4FF),
+    child: const Icon(
+      Icons.play_lesson_outlined,
+      color: Color(0xFF1E88E5),
+      size: 30,
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────
+// Certificate Card Widget
+// ─────────────────────────────────────────────
+class _CertificateCard extends StatelessWidget {
+  final _Certificate cert;
+  const _CertificateCard({required this.cert});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8D5FF), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 10,
+        ),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFAB47BC), Color(0xFF7B1FA2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.workspace_premium,
+            color: Colors.white,
+            size: 26,
+          ),
+        ),
+        title: Text(
+          cert.courseName,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 12,
+                color: Colors.black38,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _formatDate(cert.issuedDate),
+                style: const TextStyle(fontSize: 12, color: Colors.black45),
               ),
               const SizedBox(width: 6),
               if (isCompleted)
@@ -857,6 +942,31 @@ class _CourseCard extends StatelessWidget {
             ],
           ),
         ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3E5F5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Text(
+            'Xem',
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF8E24AA),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        onTap: () {
+          // HIỂN THỊ THÔNG BÁO TẠM THỜI CHỜ BỔ SUNG TÍNH NĂNG XUẤT PDF
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đang tải chứng chỉ: ${cert.courseName}...'),
+              backgroundColor: const Color(0xFF8E24AA),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
       ),
     );
   }
