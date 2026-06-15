@@ -27,7 +27,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   Future<List<dynamic>> fetchSimilarCourses() async {
     try {
-      const String baseUrl = 'http://127.0.0.1:5128';
+     const String baseUrl = 'http://20.239.91.134:5128';
+      // const String baseUrl = 'http://127.0.0.1:5128';
       // Gọi API Content-Based: similar-courses với courseId được truyền từ trang Home
       final url = Uri.parse(
         '$baseUrl/api/Recommendation/content-based/similar-courses/${widget.courseId}',
