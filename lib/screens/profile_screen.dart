@@ -17,12 +17,14 @@ import 'certificate_screen.dart';
 // ─────────────────────────────────────────────
 class _Certificate {
   final int id;
+  final int courseId;
   final String courseName;
   final String issuedDate;
   final String? thumbnailUrl;
 
   _Certificate({
     required this.id,
+    required this.courseId,
     required this.courseName,
     required this.issuedDate,
     this.thumbnailUrl,
@@ -33,7 +35,8 @@ class _Certificate {
     final khoaHoc = json['khoaHoc'] ?? json['course'] ?? json;
 
     return _Certificate(
-      id: json['maCertificate'] ?? json['id'] ?? 0,
+      id: json['maChungChi'] ?? json['maCertificate'] ?? json['id'] ?? 0,
+      courseId: khoaHoc['maKhoaHoc'] ?? khoaHoc['id'] ?? json['courseId'] ?? 0,
       courseName:
           khoaHoc['tieuDe'] ??
           khoaHoc['title'] ??
@@ -130,7 +133,18 @@ class _ProfileScreenState extends State<ProfileScreen>
         final List data = jsonDecode(res.body);
         if (mounted) {
           setState(() {
-            _certificates = data.map((j) => _Certificate.fromJson(j)).toList();
+            final parsedCerts = data.map((j) => _Certificate.fromJson(j)).toList();
+            
+            // Lọc trùng lặp chứng chỉ (vì lỗi data cũ có thể tạo ra hàng trăm chứng chỉ giống nhau)
+            final Map<String, _Certificate> uniqueCerts = {};
+            for (var c in parsedCerts) {
+              // Bỏ qua các chứng chỉ bị lỗi (không có tên khóa học)
+              if (c.courseName.isNotEmpty && c.courseName != 'Chứng chỉ khóa học') {
+                uniqueCerts[c.courseName] = c;
+              }
+            }
+            
+            _certificates = uniqueCerts.values.toList();
             _loadingCerts = false;
           });
         }

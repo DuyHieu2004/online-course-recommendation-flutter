@@ -61,7 +61,7 @@ class CourseService {
 
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/Learning/my-courses'),
+        Uri.parse('${ApiConstants.baseUrl}/Learning/my-courses?pageSize=1000'),
         headers: {'Authorization': 'Bearer ${user.token}'},
       );
       if (response.statusCode == 200) {
